@@ -1,0 +1,73 @@
+digraph G {
+  rankdir = "RL";
+  node [shape = rect, fontname = "sans-serif"];
+  "azurerm_resource_group.rg" [label="azurerm_resource_group.rg"];
+  subgraph "cluster_module.database" {
+    label = "module.database"
+    fontname = "sans-serif"
+    "module.database.azurerm_postgresql_flexible_server.postgresql" [label="azurerm_postgresql_flexible_server.postgresql"];
+    "module.database.azurerm_private_dns_zone.postgresql_dns_zone" [label="azurerm_private_dns_zone.postgresql_dns_zone"];
+    "module.database.azurerm_private_dns_zone_virtual_network_link.postgresql_virtual_network_link" [label="azurerm_private_dns_zone_virtual_network_link.postgresql_virtual_network_link"];
+  }
+  subgraph "cluster_module.redis" {
+    label = "module.redis"
+    fontname = "sans-serif"
+    "module.redis.azurerm_private_dns_a_record.redis_dns_a_record" [label="azurerm_private_dns_a_record.redis_dns_a_record"];
+    "module.redis.azurerm_private_dns_zone.redis_dns_zone" [label="azurerm_private_dns_zone.redis_dns_zone"];
+    "module.redis.azurerm_private_dns_zone_virtual_network_link.redis_virtual_network_link" [label="azurerm_private_dns_zone_virtual_network_link.redis_virtual_network_link"];
+    "module.redis.azurerm_private_endpoint.redis_private_endpoint" [label="azurerm_private_endpoint.redis_private_endpoint"];
+    "module.redis.azurerm_redis_cache.redis" [label="azurerm_redis_cache.redis"];
+  }
+  subgraph "cluster_module.virtual_machine" {
+    label = "module.virtual_machine"
+    fontname = "sans-serif"
+    "module.virtual_machine.azurerm_linux_virtual_machine.virtual_machine" [label="azurerm_linux_virtual_machine.virtual_machine"];
+    "module.virtual_machine.azurerm_network_interface.network_interface" [label="azurerm_network_interface.network_interface"];
+    "module.virtual_machine.azurerm_network_interface_security_group_association.network_interface_sercurity_group_association" [label="azurerm_network_interface_security_group_association.network_interface_sercurity_group_association"];
+    "module.virtual_machine.azurerm_network_security_group.network_security_group" [label="azurerm_network_security_group.network_security_group"];
+    "module.virtual_machine.azurerm_network_security_rule.http_rule" [label="azurerm_network_security_rule.http_rule"];
+    "module.virtual_machine.azurerm_network_security_rule.https_rule" [label="azurerm_network_security_rule.https_rule"];
+    "module.virtual_machine.azurerm_network_security_rule.ssh_rule" [label="azurerm_network_security_rule.ssh_rule"];
+    "module.virtual_machine.azurerm_public_ip.public_ip" [label="azurerm_public_ip.public_ip"];
+    "module.virtual_machine.azurerm_ssh_public_key.vm_ssh_key" [label="azurerm_ssh_public_key.vm_ssh_key"];
+    "module.virtual_machine.azurerm_virtual_machine_extension.aad_ssh_login" [label="azurerm_virtual_machine_extension.aad_ssh_login"];
+    "module.virtual_machine.azurerm_virtual_machine_extension.vm_access_for_linux" [label="azurerm_virtual_machine_extension.vm_access_for_linux"];
+  }
+  subgraph "cluster_module.vpc" {
+    label = "module.vpc"
+    fontname = "sans-serif"
+    "module.vpc.azurerm_subnet.db_sn" [label="azurerm_subnet.db_sn"];
+    "module.vpc.azurerm_subnet.gateway_sn" [label="azurerm_subnet.gateway_sn"];
+    "module.vpc.azurerm_subnet.redis_sn" [label="azurerm_subnet.redis_sn"];
+    "module.vpc.azurerm_virtual_network.vn" [label="azurerm_virtual_network.vn"];
+  }
+  "module.database.azurerm_postgresql_flexible_server.postgresql" -> "module.database.azurerm_private_dns_zone_virtual_network_link.postgresql_virtual_network_link";
+  "module.database.azurerm_postgresql_flexible_server.postgresql" -> "module.vpc.azurerm_subnet.db_sn";
+  "module.database.azurerm_private_dns_zone.postgresql_dns_zone" -> "azurerm_resource_group.rg";
+  "module.database.azurerm_private_dns_zone_virtual_network_link.postgresql_virtual_network_link" -> "module.database.azurerm_private_dns_zone.postgresql_dns_zone";
+  "module.database.azurerm_private_dns_zone_virtual_network_link.postgresql_virtual_network_link" -> "module.vpc.azurerm_virtual_network.vn";
+  "module.redis.azurerm_private_dns_a_record.redis_dns_a_record" -> "module.redis.azurerm_private_endpoint.redis_private_endpoint";
+  "module.redis.azurerm_private_dns_zone.redis_dns_zone" -> "azurerm_resource_group.rg";
+  "module.redis.azurerm_private_dns_zone_virtual_network_link.redis_virtual_network_link" -> "module.redis.azurerm_private_dns_zone.redis_dns_zone";
+  "module.redis.azurerm_private_dns_zone_virtual_network_link.redis_virtual_network_link" -> "module.vpc.azurerm_virtual_network.vn";
+  "module.redis.azurerm_private_endpoint.redis_private_endpoint" -> "module.redis.azurerm_redis_cache.redis";
+  "module.redis.azurerm_private_endpoint.redis_private_endpoint" -> "module.vpc.azurerm_subnet.redis_sn";
+  "module.redis.azurerm_redis_cache.redis" -> "module.redis.azurerm_private_dns_zone_virtual_network_link.redis_virtual_network_link";
+  "module.virtual_machine.azurerm_linux_virtual_machine.virtual_machine" -> "module.virtual_machine.azurerm_network_interface.network_interface";
+  "module.virtual_machine.azurerm_network_interface.network_interface" -> "module.virtual_machine.azurerm_public_ip.public_ip";
+  "module.virtual_machine.azurerm_network_interface.network_interface" -> "module.vpc.azurerm_subnet.gateway_sn";
+  "module.virtual_machine.azurerm_network_interface_security_group_association.network_interface_sercurity_group_association" -> "module.virtual_machine.azurerm_network_interface.network_interface";
+  "module.virtual_machine.azurerm_network_interface_security_group_association.network_interface_sercurity_group_association" -> "module.virtual_machine.azurerm_network_security_group.network_security_group";
+  "module.virtual_machine.azurerm_network_security_group.network_security_group" -> "azurerm_resource_group.rg";
+  "module.virtual_machine.azurerm_network_security_rule.http_rule" -> "module.virtual_machine.azurerm_network_security_group.network_security_group";
+  "module.virtual_machine.azurerm_network_security_rule.https_rule" -> "module.virtual_machine.azurerm_network_security_group.network_security_group";
+  "module.virtual_machine.azurerm_network_security_rule.ssh_rule" -> "module.virtual_machine.azurerm_network_security_group.network_security_group";
+  "module.virtual_machine.azurerm_public_ip.public_ip" -> "azurerm_resource_group.rg";
+  "module.virtual_machine.azurerm_ssh_public_key.vm_ssh_key" -> "azurerm_resource_group.rg";
+  "module.virtual_machine.azurerm_virtual_machine_extension.aad_ssh_login" -> "module.virtual_machine.azurerm_linux_virtual_machine.virtual_machine";
+  "module.virtual_machine.azurerm_virtual_machine_extension.vm_access_for_linux" -> "module.virtual_machine.azurerm_linux_virtual_machine.virtual_machine";
+  "module.vpc.azurerm_subnet.db_sn" -> "module.vpc.azurerm_virtual_network.vn";
+  "module.vpc.azurerm_subnet.gateway_sn" -> "module.vpc.azurerm_virtual_network.vn";
+  "module.vpc.azurerm_subnet.redis_sn" -> "module.vpc.azurerm_virtual_network.vn";
+  "module.vpc.azurerm_virtual_network.vn" -> "azurerm_resource_group.rg";
+}
